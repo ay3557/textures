@@ -93,19 +93,19 @@ function drawCurrentShape () {
     // have added to the shader
     
     if (curTexture == "globe"){
-      gl.uniform1i(program.uval,0);
+      gl.uniform1i(program.uVal,0);
       gl.activeTexture (gl.TEXTURE0);
       gl.bindTexture (gl.TEXTURE_2D, worldTexture);
       gl.uniform1i (program.uTheTexture, 0);
     }
     else if(curTexture == "myimage"){
-      gl.uniform1i(program.uval,1);
+      gl.uniform1i(program.uVal,1);
       gl.activeTexture (gl.TEXTURE0+1);
       gl.bindTexture (gl.TEXTURE_2D, rickMortyTexture);
       gl.uniform1i (program.urickMortyTexture, 1);
     }
     else{
-      gl.uniform1i (program.uval, 2);
+      gl.uniform1i (program.uVal, 2);
     }
     // set up rotation uniform
     gl.uniform3fv (program.uTheta, new Float32Array(angles));
@@ -147,7 +147,7 @@ function initProgram (vertexid, fragmentid) {
   program.uTheTexture = gl.getUniformLocation (program, 'theTexture');
   program.uTheta = gl.getUniformLocation (program, 'theta');
   program.urickMortyTexture=gl.getUniformLocation(program,'rickMortyTexture');
-  program.uval=gl.getUniformLocation(program,'val');
+  program.uVal=gl.getUniformLocation(program,'val');
     
   return program;
 }
