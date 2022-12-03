@@ -100,10 +100,10 @@ function drawCurrentShape () {
     else if(curTexture == "myimage"){
     gl.activeTexture (gl.TEXTURE0);
     gl.bindTexture (gl.TEXTURE_2D, rickMortyTexture);
-    gl.uniform1i (program.uTheTexture, 1);
+    gl.uniform1i (program.urickMortyTexture, 1);
     }
     else{
-      gl.uniform1i (program.uTheTexture, 2);
+      gl.uniform1i (program.uval, 2);
     }
     // set up rotation uniform
     gl.uniform3fv (program.uTheta, new Float32Array(angles));
