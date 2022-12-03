@@ -93,13 +93,13 @@ function drawCurrentShape () {
     // have added to the shader
     
     if (curTexture == "globe"){
-      // gl.uniform1i(program.uval,0);
+      gl.uniform1i(program.uval,0);
       gl.activeTexture (gl.TEXTURE0);
       gl.bindTexture (gl.TEXTURE_2D, worldTexture);
       gl.uniform1i (program.uTheTexture, 0);
     }
     else if(curTexture == "myimage"){
-      // gl.uniform1i(program.uval,1);
+      gl.uniform1i(program.uval,1);
       gl.activeTexture (gl.TEXTURE0+1);
       gl.bindTexture (gl.TEXTURE_2D, rickMortyTexture);
       gl.uniform1i (program.urickMortyTexture, 1);
