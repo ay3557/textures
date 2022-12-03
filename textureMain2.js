@@ -1,32 +1,43 @@
-'use strict';
+  'use strict';
 
-// Global variables that are set and used
-// across the application
-let gl;
+  // Global variables that are set and used
+  // across the application
+  let gl;
 
-// The programs
-let sphereGlobeProgram;
+  // The programs
+  let sphereGlobeProgram;
 
-// the textures
-let worldTexture;
-let beachTexture;
+  // the textures
+  let worldTexture;
+  let rickMortyTexture;
+  
+  // VAOs for the objects
+  var mySphere = null;
+  var myCube = null;
 
-// VAOs for the objects
-var mySphere = null;
-var myCube = null;
+  // what is currently showing
+  let nowShowing = 'Sphere';
 
-// what is currently showing
-let nowShowing = 'Sphere';
+  // what texure are you using
+  // valid values = "globe", "myimage" or "proc"
+  let curTexture = "globe";
 
-// what texure are you using
-// valid values = "globe", "myimage" or "proc"
-let curTexture = "globe";
+  var anglesReset = [30.0, 30.0, 0.0];
+  var cube_angles = [30.0, 30.0, 0.0];
+  var sphere_angles = [180.0, 180.0, 0.0];
+  var angles = sphere_angles;
+  var angleInc = 5.0;
 
-var anglesReset = [30.0, 30.0, 0.0];
-var cube_angles = [30.0, 30.0, 0.0];
-var sphere_angles = [180.0, 180.0, 0.0];
-var angles = sphere_angles;
-var angleInc = 5.0;
+function doLoad(theTexture, theImage) {
+    gl.bindTexture(gl.TEXTURE_2D, theTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, theImage);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    
+    draw();
+}
 
 //
 // load up the textures you will use in the shader(s)
@@ -35,49 +46,27 @@ var angleInc = 5.0;
 // set up as well.
 //
 function setUpTextures(){
-  
-  // get some texture space from the gpu
-  worldTexture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, worldTexture);
-  
-  // load the actual image
-  var worldImage = document.getElementById ('world-texture')
-  worldImage.crossOrigin = "";
-
-worldImage.onload = () => {
-  // bind the texture so we can perform operations on it
-  gl.bindTexture(gl.TEXTURE_2D, worldTexture);
-      
-  // load the texture data
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, worldImage.width, worldImage.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, worldImage);
-      
-  // set texturing parameters
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);   
-}
-
-beachTexture = gl.createTexture();
-gl.bindTexture(gl.TEXTURE_2D, beachTexture);
-
-// load the actual image
-var beachImage = document.getElementById ('beach-texture')
-beachImage.crossOrigin = "";
-
-beachImage.onload = () => {
-// bind the texture so we can perform operations on it
-gl.bindTexture(gl.TEXTURE_2D, beachTexture);
     
-// load the texture data
-gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, beachImage.width, beachImage.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, beachImage);
+    // get some texture space from the gpu
+    worldTexture = gl.createTexture();
     
-// set texturing parameters
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  
-}
+    // load the actual image
+    const worldImage = new Image();
+    worldImage.src = '1_earth_16k.jpg';
 
+    worldImage.onload = () => {
+        doLoad (worldTexture, worldImage);
+    };
+
+    rickMortyTexture = gl.createTexture();
+    
+    // load the new image
+    const globeImg = new Image();
+    globeImg.src = '936813.jpg';
+
+    globeImg.onload = () => {
+        doLoad (rickMortyTexture, globeImg);
+    };
 }
 
 //
@@ -85,85 +74,82 @@ gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 // current texture
 //
 function drawCurrentShape () {
-  
-  // which shape are we drawing
-  var object = mySphere;
-  if (nowShowing == "Cube") object = myCube;
-  
-  // may need to set different parameters based on the texture
-  // you are using...The current texture is found in the global variable
-  // curTexture.   If will have the value of "globe", "myimage" or "proc"
-  
-  // which program are we using
-  var program = sphereGlobeProgram;
-  
-  // set up your uniform variables for drawing
-  gl.useProgram (program);
-  
-  // set up texture uniform & other uniforms that you might
-  // have added to the shader
-  if(curTexture=="globe"){
-  gl.uniform1i(program.uTexVal,0);
-  gl.activeTexture (gl.TEXTURE0);
-  gl.bindTexture (gl.TEXTURE_2D, worldTexture);
-  gl.uniform1i (program.uTheTexture, 0);
-  }
-  else if(curTexture=="myimage"){
-    gl.uniform1i(program.uTexVal,1);
-    gl.activeTexture (gl.TEXTURE0+1);
-  gl.bindTexture (gl.TEXTURE_2D, beachTexture);
-  gl.uniform1i (program.uBeachTexture, 1);
-  }
-  else{
-    gl.uniform1i(program.uTexVal,2);
-  }
+    
+    // which shape are we drawing
+    var object = mySphere;
+    if (nowShowing == "Cube") object = myCube;
+    
+    // may need to set different parameters based on the texture
+    // you are using...The current texture is found in the global variable
+    // curTexture.   If will have the value of "globe", "myimage" or "proc"
+    
+    // which program are we using
+    var program = sphereGlobeProgram;
+    
+    // set up your uniform variables for drawing
+    gl.useProgram (program);
+    
+    // set up texture uniform & other uniforms that you might
+    // have added to the shader
+    
+    if (curTexture == "globe"){
+    gl.activeTexture (gl.TEXTURE0);
+    gl.bindTexture (gl.TEXTURE_2D, worldTexture);
+    gl.uniform1i (program.uTheTexture, 0);
+    }
+    else if(curTexture == "myimage"){
+    gl.activeTexture (gl.TEXTURE0);
+    gl.bindTexture (gl.TEXTURE_2D, rickMortyTexture);
+    gl.uniform1i (program.uTheTexture, 1);
+    }
+    else{
+      gl.uniform1i (program.uTheTexture, 2);
+    }
+    // set up rotation uniform
+    gl.uniform3fv (program.uTheta, new Float32Array(angles));
 
-
-  
-  // set up rotation uniform
-  gl.uniform3fv (program.uTheta, new Float32Array(angles));
-
-  //Bind the VAO and draw
-  gl.bindVertexArray(object.VAO);
-  gl.drawElements(gl.TRIANGLES, object.indices.length, gl.UNSIGNED_SHORT, 0);
-  
+    //Bind the VAO and draw
+    gl.bindVertexArray(object.VAO);
+    gl.drawElements(gl.TRIANGLES, object.indices.length, gl.UNSIGNED_SHORT, 0);
+    
 }
 
 // Create a program with the appropriate vertex and fragment shaders
 function initProgram (vertexid, fragmentid) {
+    
+  // set up the per-vertex program
+  const vertexShader = getShader(vertexid);
+  const fragmentShader = getShader(fragmentid);
+
+  // Create a program
+  let program = gl.createProgram();
   
-// set up the per-vertex program
-const vertexShader = getShader(vertexid);
-const fragmentShader = getShader(fragmentid);
+  // Attach the shaders to this program
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+  gl.linkProgram(program);
 
-// Create a program
-let program = gl.createProgram();
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    console.error('Could not initialize shaders');
+  }
 
-// Attach the shaders to this program
-gl.attachShader(program, vertexShader);
-gl.attachShader(program, fragmentShader);
-gl.linkProgram(program);
-
-if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-  console.error('Could not initialize shaders');
+  // Use this program instance
+  gl.useProgram(program);
+  // We attach the location of these shader values to the program instance
+  // for easy access later in the code
+  program.aVertexPosition = gl.getAttribLocation(program, 'aVertexPosition');
+  program.aUV = gl.getAttribLocation(program, 'aUV');
+    
+  // uniforms - you will need to add references for any additional
+  // uniforms that you add to your shaders
+  program.uTheTexture = gl.getUniformLocation (program, 'theTexture');
+  program.uTheta = gl.getUniformLocation (program, 'theta');
+  program.urickMortyTexture=gl.getUniformLocation(program,'rickMortyTexture');
+  program.uval=gl.getUniformLocation(program,'val');
+    
+  return program;
 }
 
-// Use this program instance
-gl.useProgram(program);
-// We attach the location of these shader values to the program instance
-// for easy access later in the code
-program.aVertexPosition = gl.getAttribLocation(program, 'aVertexPosition');
-program.aUV = gl.getAttribLocation(program, 'aUV');
-  
-// uniforms - you will need to add references for any additional
-// uniforms that you add to your shaders
-program.uTheTexture = gl.getUniformLocation (program, 'theTexture');
-program.uBeachTexture=gl.getUniformLocation(program,'beachTexture');
-program.uTexVal=gl.getUniformLocation(program,'texVal');
-program.uTheta = gl.getUniformLocation (program, 'theta');
-  
-return program;
-}
 ///////////////////////////////////////////////////////////////////
 //
 //  No need to edit below this line.

@@ -70,12 +70,23 @@
          
          // the texture to use
          uniform sampler2D theTexture;
-
+         uniform sampler2D rickMortyTexture;
+         uniform int val;
          // Color that is the result of this shader
          out vec4 fragColor;
 
          void main(void) {
-             fragColor = texture (theTexture, theUV);
+             fvec4 black=vec4(0.0,0.0,0.0,1.0);
+             vec4 white=vec4(1.0,1.0,1.0,1.0);
+               if(val==0){
+                fragColor = texture (theTexture, theUV);
+               }
+               else if(val==1){
+                 fragColor=texture(rickMortyTexture,theUV);
+               }
+               else{
+                 fragColor=theUV.x*black+theUV.y*white;
+               }
          }
 
     </script>
