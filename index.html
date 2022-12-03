@@ -76,7 +76,7 @@
          out vec4 fragColor;
 
          void main(void) {
-             fvec4 black=vec4(0.0,0.0,0.0,1.0);
+             vec4 black=vec4(0.0,0.0,0.0,1.0);
              vec4 white=vec4(1.0,1.0,1.0,1.0);
                if(val==0){
                 fragColor = texture (theTexture, theUV);
